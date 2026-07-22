@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Boys vs Girls — Ball Battle</title>
+<title>Boys vs Girls â€” Ball Battle</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Inter:wght@600;800;900&display=swap" rel="stylesheet">
@@ -78,7 +78,7 @@
     display:flex; flex-direction:column; align-items:center;
     gap:clamp(8px,1.4vh,16px);
     padding:clamp(10px,1.6vh,18px) 16px clamp(12px,2vh,22px);
-    /* uniform shrink toward the middle — geometry stays identical */
+    /* uniform shrink toward the middle â€” geometry stays identical */
     transform:scale(var(--gs));
     transform-origin:center center;
   }
@@ -137,7 +137,7 @@
     -webkit-text-stroke:.13em #08080A; paint-order:stroke fill;
   }
   .plaque .lbl{font-size:11px; letter-spacing:.24em; opacity:.62; font-weight:900}
-  /* solid saturated team colour — not a washed-out tint */
+  /* solid saturated team colour â€” not a washed-out tint */
   .side.blue .nm,.side.blue .wins{color:#4FA2FF}
   .side.red  .nm,.side.red  .wins{color:#FF5F5F}
 
@@ -207,10 +207,10 @@
   .cap{
     font-family:var(--display); letter-spacing:.01em;
     /* "LIGHTNING" measures 4.88x its font size, so 0.195x the tile width makes
-       the longest word land just inside the tile — same wrap at every size. */
+       the longest word land just inside the tile â€” same wrap at every size. */
     font-size:calc(var(--tileW) * .185);
     /* >=1 so descenders (the G in LIGHTNING) sit inside the line box, and never
-       break a word — that orphaned the last letter onto its own line */
+       break a word â€” that orphaned the last letter onto its own line */
     line-height:1.06; text-align:center;
     width:100%; white-space:nowrap; overflow-wrap:normal; word-break:keep-all;
     color:#FFDF8A;
@@ -344,6 +344,22 @@
     border-radius:4px; padding:1px 5px; font-family:var(--ui); font-size:9.5px;
   }
 
+  /* only shows when a newer deploy is sitting on the server */
+  .update{
+    position:fixed; left:10px; bottom:8px; z-index:40;
+    display:none;
+    background:linear-gradient(180deg,var(--gold-hi),#C99B33);
+    color:#1E1508; border:2px solid #0A0A0A; border-radius:8px;
+    padding:6px 11px;
+    font-family:var(--ui); font-weight:900; font-size:11px; letter-spacing:.06em;
+    box-shadow:0 4px 14px rgba(0,0,0,.6);
+  }
+  .update.on{display:block}
+  .update kbd{
+    background:rgba(0,0,0,.22); border:1px solid rgba(0,0,0,.35);
+    border-radius:4px; padding:1px 5px; font-size:10px;
+  }
+
   /* ===== menu ===== */
   .menu{
     position:fixed; inset:0; z-index:30;
@@ -449,15 +465,17 @@
   </div>
 </div>
 
-<div class="hint"><kbd>Ctrl</kbd>+<kbd>M</kbd> MENU &nbsp;·&nbsp; <kbd>R</kbd> NEW ROUND &nbsp;·&nbsp; <kbd>P</kbd> PAUSE</div>
+<div class="hint"><kbd>Ctrl</kbd>+<kbd>M</kbd> MENU &nbsp;Â·&nbsp; <kbd>R</kbd> NEW ROUND &nbsp;Â·&nbsp; <kbd>P</kbd> PAUSE</div>
+
+<div class="update" id="updateBadge">NEW BUILD READY â€” PRESS <kbd>U</kbd></div>
 
 <div class="menu" id="menu">
   <div class="panel">
     <h2>CONTROL MENU</h2>
     <div class="lead">Every action, its key, and what it does. Close with Esc or Ctrl+M.</div>
     <div class="grid2">
-      <div class="col blue"><h3 id="menuNameBlue">BOYS — LEFT</h3><div id="menuListBlue"></div></div>
-      <div class="col red"><h3 id="menuNameRed">GIRLS — RIGHT</h3><div id="menuListRed"></div></div>
+      <div class="col blue"><h3 id="menuNameBlue">BOYS â€” LEFT</h3><div id="menuListBlue"></div></div>
+      <div class="col red"><h3 id="menuNameRed">GIRLS â€” RIGHT</h3><div id="menuListRed"></div></div>
     </div>
 
     <div class="settings">
@@ -545,7 +563,7 @@
   document.getElementById('bg').style.backgroundImage = `url(${c.toDataURL('image/png')})`;
 })();
 
-/* The arena floor is its OWN surface — polished slate flags, not the outer wall
+/* The arena floor is its OWN surface â€” polished slate flags, not the outer wall
    showing through a dark film. Built as a canvas pattern so it fills opaquely. */
 function makeFloorTile(){
   const S = 160, T = S / 2;
@@ -579,7 +597,7 @@ function makeFloorTile(){
 let floorPattern = null;
 
 /* =========================================================
-   2. AUDIO — soft mallet / bell voices through a light space
+   2. AUDIO â€” soft mallet / bell voices through a light space
    ========================================================= */
 const Snd = {
   ctx:null, master:null, wet:null, vol:0.70, ready:false,
@@ -593,7 +611,7 @@ const Snd = {
     this.master.gain.value = this.vol;
     this.master.connect(a.destination);
 
-    // just enough room to stop hits sounding dry — short and quiet, never musical
+    // just enough room to stop hits sounding dry â€” short and quiet, never musical
     const dl = a.createDelay(1.0); dl.delayTime.value = 0.055;
     const fb = a.createGain();     fb.gain.value = 0.18;
     const lp = a.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2200;
@@ -607,7 +625,7 @@ const Snd = {
   resume(){ if(this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); },
   setVol(v){ this.vol = v; if(this.master) this.master.gain.value = v; },
 
-  /* THUMP — the body of an impact. Sine with a fast pitch drop, like a struck drum. */
+  /* THUMP â€” the body of an impact. Sine with a fast pitch drop, like a struck drum. */
   thump(freq, {dur = .18, gain = .3, drop = .35, delay = 0, type = 'sine'} = {}){
     if(!this.ready || this.vol <= 0) return;
     const a = this.ctx, t = a.currentTime + delay;
@@ -622,7 +640,7 @@ const Snd = {
     o.start(t); o.stop(t + dur + .03);
   },
 
-  /* NOISE — the transient. Contact, scrape, air. */
+  /* NOISE â€” the transient. Contact, scrape, air. */
   noise(freq, {dur = .09, gain = .12, q = 1, sweep = .4, kind = 'bandpass', delay = 0} = {}){
     if(!this.ready || this.vol <= 0) return;
     const a = this.ctx, t = a.currentTime + delay;
@@ -644,7 +662,7 @@ const Snd = {
     src.start(t); src.stop(t + dur + .02);
   },
 
-  /* METAL — inharmonic partials, very short. Reads as a clang, never as a note. */
+  /* METAL â€” inharmonic partials, very short. Reads as a clang, never as a note. */
   metal(base, {dur = .16, gain = .09, delay = 0} = {}){
     if(!this.ready || this.vol <= 0) return;
     const a = this.ctx, t = a.currentTime + delay;
@@ -668,17 +686,17 @@ const Snd = {
 };
 
 const sfx = {
-  /* rubbery bounce off stone — dull, low, satisfying */
+  /* rubbery bounce off stone â€” dull, low, satisfying */
   wall(){
     Snd.thump(150 + Math.random() * 30, { dur:.13, gain:.20, drop:.32 });
     Snd.noise(900, { dur:.045, gain:.07, q:.9, sweep:.3 });
   },
-  /* the two balls knocking together — heavier, no damage attached */
+  /* the two balls knocking together â€” heavier, no damage attached */
   bump(){
     Snd.thump(105, { dur:.22, gain:.30, drop:.28 });
     Snd.noise(1400, { dur:.06, gain:.09, q:.8, sweep:.25 });
   },
-  /* weapon connects — the money sound. Sharp contact, metal, body. */
+  /* weapon connects â€” the money sound. Sharp contact, metal, body. */
   hit(){
     Snd.noise(5200, { dur:.035, gain:.20, q:.5, sweep:.12, kind:'highpass' });
     Snd.metal(1750 + Math.random() * 260, { dur:.17, gain:.10 });
@@ -692,7 +710,7 @@ const sfx = {
     Snd.noise(500, { dur:.5, gain:.10, q:2.4, sweep:3.4 });
     Snd.thump(220, { dur:.42, gain:.14, drop:2.1 });
   },
-  /* mechanical ratchet — three ascending clicks and a thud */
+  /* mechanical ratchet â€” three ascending clicks and a thud */
   up(){
     [0, .055, .11].forEach((d, i) =>
       Snd.noise(1500 + i * 1100, { dur:.035, gain:.13, q:1.4, sweep:.5, delay:d }));
@@ -747,7 +765,7 @@ const sfx = {
    3. CONFIG
    ========================================================= */
 /* Balls travel in straight lines only, so how often they meet is pure geometry:
-   bigger + faster = more contact. Damage never comes from the balls touching —
+   bigger + faster = more contact. Damage never comes from the balls touching â€”
    only from a spinning weapon landing on the opposing ball, one side at a time. */
 const CFG = {
   maxHp:1000, speed:640, baseDmg:10, radius:90,
@@ -757,7 +775,7 @@ const CFG = {
   maxRadius:200,
   weaponReach:1.35,       // base blade length as a fraction of ball radius
   upgradeReach:0.22,      // how much longer the blade gets per upgrade
-  spinRate:1.70,          // rad/sec — the WHOLE ball turns at this rate, weapon welded on
+  spinRate:1.70,          // rad/sec â€” the WHOLE ball turns at this rate, weapon welded on
   weaponWidth:0.30,       // hit thickness as a fraction of ball radius
   spinScore:true,         // does the HP number turn with the ball
 };
@@ -796,13 +814,13 @@ function makeBall(team){
   return {
     team,
     name: isBlue ? 'BOYS' : 'GIRLS',
-    // truer primary blue / red — less periwinkle, less coral
+    // truer primary blue / red â€” less periwinkle, less coral
     color: isBlue ? '#1668E3' : '#DE1F1F',
     light: isBlue ? '#6BAEFF' : '#FF6B6B',
     dark:  isBlue ? '#0B3A87' : '#7A0F0F',
-    weapon: isBlue ? 'axe' : 'sword',   // boys swing an axe, girls a sword — permanent
+    weapon: isBlue ? 'axe' : 'sword',   // boys swing an axe, girls a sword â€” permanent
     // opposite directions at an uneven ratio, so the two blades never stay in
-    // lockstep and land on the same frame — that's what made every hit mutual
+    // lockstep and land on the same frame â€” that's what made every hit mutual
     spinDir: isBlue ? 1 : -1.27,
     hp:CFG.maxHp, maxHp:CFG.maxHp,
     atk:CFG.baseDmg, lvl:1, r:CFG.radius, speed:CFG.speed,
@@ -827,7 +845,7 @@ let over = false, paused = false, winner = null;
    then puts it back exactly where it was. Extra upgrades that
    arrive mid-scene chain into repeat bursts before the return.
    --------------------------------------------------------- */
-let cutQueue = [];        // FIFO of {kind:'up'|'bolt', team} — team is the GIFTER
+let cutQueue = [];        // FIFO of {kind:'up'|'bolt', team} â€” team is the GIFTER
 const cut = { on:false, kind:null, team:null, phase:'', t:0, sx:0, sy:0, svx:0, svy:0, hits:0 };
 const CUT = { gather:.50, charge:.45, burst:.55, back:.45,
               bCharge:.55, bStrike:.60, bBack:.40 };
@@ -975,7 +993,7 @@ function stepCut(dt){
   }
 }
 
-/* camera — sits still all round, then pushes in on whoever won */
+/* camera â€” sits still all round, then pushes in on whoever won */
 const cam = { x:W/2, y:H/2, z:1, tx:W/2, ty:H/2, tz:1 };
 let victoryTimer = null;
 
@@ -1199,7 +1217,7 @@ function drawBanner(){
   if(!announce) return;
 
   const a = announce;
-  const p = 1 - a.life / a.max;              // 0 → 1 over its lifetime
+  const p = 1 - a.life / a.max;              // 0 â†’ 1 over its lifetime
   // punch in with overshoot, hold, then lift away
   let scale, alpha = 1, lift = 0;
   if(p < .16){
@@ -1261,7 +1279,7 @@ function burst(x, y, color, n){
 }
 
 /* =========================================================
-   7. PHYSICS — pure reflection, no steering
+   7. PHYSICS â€” pure reflection, no steering
    ========================================================= */
 function stepBall(b, dt){
   if(b.flash  > 0) b.flash  = Math.max(0, b.flash  - dt);
@@ -1277,7 +1295,7 @@ function stepBall(b, dt){
   b.y += b.vy * dt;
 
   // one rigid rotation: body, rim, weapon and HP number all turn together.
-  // Travel speed is untouched by this — only how fast the assembly turns.
+  // Travel speed is untouched by this â€” only how fast the assembly turns.
   b.rot += CFG.spinRate * b.spinDir * dt;
 
   let hitWall = false;
@@ -1294,7 +1312,7 @@ function stepBall(b, dt){
   if(b.trail.length > 22) b.trail.shift();
 }
 
-/* Balls knocking together is purely a bounce now — nobody loses HP for it. */
+/* Balls knocking together is purely a bounce now â€” nobody loses HP for it. */
 function collide(){
   const dx = red.x - blue.x, dy = red.y - blue.y;
   const dist = Math.hypot(dx, dy) || 1e-4;
@@ -1338,7 +1356,7 @@ function pointSegDist(px, py, x1, y1, x2, y2){
   return { d:Math.hypot(px - cx, py - cy), cx, cy };
 }
 
-/* Only a weapon landing on the opposing ball does damage — and only to that ball. */
+/* Only a weapon landing on the opposing ball does damage â€” and only to that ball. */
 function weaponStrikes(){
   [[blue, red], [red, blue]].forEach(([atk, def]) => {
     if(over || atk.hitT > 0) return;
@@ -1383,7 +1401,7 @@ function stepFx(dt){
 function drawFloor(){
   if(!floorPattern) floorPattern = ctx.createPattern(makeFloorTile(), 'repeat');
 
-  // opaque slate — the outer temple wall does NOT show through
+  // opaque slate â€” the outer temple wall does NOT show through
   ctx.fillStyle = floorPattern;
   ctx.fillRect(-W, -H, W * 3, H * 3);
 
@@ -1428,14 +1446,14 @@ function drawTrail(b){
 }
 
 /* The permanent orbiting weapon. Drawn along +x, then rotated into place.
-   Boys carry an axe, girls a sword — this is the only thing that deals damage. */
+   Boys carry an axe, girls a sword â€” this is the only thing that deals damage. */
 function drawWeapon(b){
   const reach = b.r * reachOf(b);           // how far past the rim it extends
   const tier = b.lvl - 1;                   // 0 at base, +1 per upgrade
   const u = b.r * (.085 + tier * .009);     // thicker as well as longer
   const flare = b.swingT > 0 ? 1 + b.swingT * 1.6 : 1;
 
-  // caller has already rotated into the ball's frame — the weapon is bolted on at 0°
+  // caller has already rotated into the ball's frame â€” the weapon is bolted on at 0Â°
   ctx.save();
   ctx.translate(b.r * .98, 0);
   ctx.scale(flare, flare);
@@ -1507,7 +1525,7 @@ function drawBall(b){
 
   const tier = b.lvl - 1;
 
-  // ambient glow — spreads and intensifies with every upgrade
+  // ambient glow â€” spreads and intensifies with every upgrade
   ctx.save();
   ctx.globalCompositeOperation = 'lighter';
   const glowR = b.r * (1.55 + tier * .12);
@@ -1559,7 +1577,7 @@ function drawBall(b){
   // weapon is mounted on the rim; its base tucks behind the body
   drawWeapon(b);
 
-  // rim teeth — flat, saturated, hard black edge
+  // rim teeth â€” flat, saturated, hard black edge
   ctx.save();
   const teeth = spiky ? 14 : 9;
   const outer = b.r * (spiky ? 1.20 : 1.09);
@@ -1575,7 +1593,7 @@ function drawBall(b){
   ctx.restore();
 
   // body: flat saturated disc, black outline, bright neon inner ring.
-  // Deliberately not a glossy 3D sphere — the reference art is flat and punchy.
+  // Deliberately not a glossy 3D sphere â€” the reference art is flat and punchy.
   ctx.beginPath(); ctx.arc(0, 0, b.r, 0, 6.284);
   ctx.fillStyle = b.color; ctx.fill();
   ctx.lineWidth = 6; ctx.strokeStyle = 'rgba(0,0,0,.92)'; ctx.stroke();
@@ -1606,7 +1624,7 @@ function drawBall(b){
     ctx.restore();
   }
 
-  // HP on the ball — rides the rotation unless the toggle says otherwise
+  // HP on the ball â€” rides the rotation unless the toggle says otherwise
   if(!CFG.spinScore) ctx.rotate(-b.rot);
   const fs = Math.max(24, Math.round(b.r * .66));
   ctx.font = `${fs}px 'Luckiest Guy', Impact, sans-serif`;
@@ -1764,7 +1782,7 @@ function tile(team, a){
   btn.innerHTML = `<span class="key">${team === 'blue' ? a.bKey : a.rKey}</span>` +
                   iconHtml(team, a, 'ico');
   btn.setAttribute('aria-label',
-    `${team === 'blue' ? blue.name : red.name}: ${a.cap} — ${a.dsc}`);
+    `${team === 'blue' ? blue.name : red.name}: ${a.cap} â€” ${a.dsc}`);
   btn.addEventListener('click', () => { sfx.tile(); doAction(team, a.id); });
   const cap = document.createElement('div');
   cap.className = 'cap';
@@ -1788,8 +1806,8 @@ function buildMenuLists(){
     </div>`).join('');
   document.getElementById('menuListBlue').innerHTML = mk('blue');
   document.getElementById('menuListRed').innerHTML  = mk('red');
-  document.getElementById('menuNameBlue').textContent = blue.name + ' — LEFT';
-  document.getElementById('menuNameRed').textContent  = red.name + ' — RIGHT';
+  document.getElementById('menuNameBlue').textContent = blue.name + ' â€” LEFT';
+  document.getElementById('menuNameRed').textContent  = red.name + ' â€” RIGHT';
 }
 
 buildRails();
@@ -1811,6 +1829,7 @@ document.addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
   if(k === 'r'){ Snd.init(); Snd.resume(); resetRound(); return; }
   if(k === 'p'){ paused = !paused; paused ? sfx.pause() : sfx.resume(); return; }
+  if(k === 'u'){ applyUpdate(); return; }
 });
 document.addEventListener('pointerdown', () => { Snd.init(); Snd.resume(); }, { once:false });
 
@@ -1867,7 +1886,7 @@ const inSpn = document.getElementById('inSpin'),  outSpn   = document.getElement
 [[inHp,outHp],[inSp,outSp],[inSz,outSz],[inDmg,outDmg]].forEach(([i,o]) =>
   i.addEventListener('input', () => o.value = i.value));
 
-// weapon sliders take effect immediately — no need to restart the round
+// weapon sliders take effect immediately â€” no need to restart the round
 inRch.addEventListener('input', () => {
   outRch.value = inRch.value + '%';
   CFG.weaponReach = inRch.value / 100;
@@ -1940,6 +1959,38 @@ function save(){
 
 /* Re-fit at every point the layout can still shift: now, next frame, once the
    display font swaps in (it changes caption widths), and on any window change. */
+/* =========================================================
+   LIVE UPDATE CHECK
+   GitHub Pages caches HTML for 10 minutes, so a plain refresh can hand back a
+   stale copy. version.json is fetched with no-store (never cached), and when it
+   reports a newer build we reload through a unique ?v= URL, which the cache
+   cannot have seen. Auto-reloads only between rounds so a live game is safe.
+   ========================================================= */
+const BUILD = '20260722-003253';
+let newBuild = null;
+const badgeEl = document.getElementById('updateBadge');
+
+function applyUpdate(){
+  if(!newBuild) return;
+  location.replace(location.pathname + '?v=' + encodeURIComponent(newBuild));
+}
+async function checkBuild(){
+  try{
+    const r = await fetch('version.json?_=' + Date.now(), { cache:'no-store' });
+    if(!r.ok) return;
+    const j = await r.json();
+    if(!j.build || j.build === BUILD || BUILD === '__BUILD__') return;
+    newBuild = j.build;
+    badgeEl.classList.add('on');
+    // safe moment = nobody has taken damage yet this round
+    const idle = !over && !cut.on &&
+                 blue.hp === blue.maxHp && red.hp === red.maxHp;
+    if(idle) applyUpdate();
+  }catch(e){ /* offline or file:// â€” just keep playing */ }
+}
+setInterval(checkBuild, 15000);
+checkBuild();
+
 fitStage();
 requestAnimationFrame(fitStage);
 addEventListener('load', fitStage);
