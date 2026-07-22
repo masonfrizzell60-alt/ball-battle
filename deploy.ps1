@@ -7,13 +7,19 @@ Set-Location $PSScriptRoot
 
 $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
 
+# BOM-less UTF-8. Set-Content -Encoding utf8 adds a BOM on PS 5.1, which puts a
+# stray marker before <!DOCTYPE html> and can break JSON.parse on version.json.
+$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+$dir = $PSScriptRoot
+
 # stamp index.html (replaces whatever the previous build id was)
-$html = Get-Content index.html -Raw
+$html = [System.IO.File]::ReadAllText("$dir\index.html")
+$html = $html -replace "^\xEF\xBB\xBF", ""
 $html = [regex]::Replace($html, "const BUILD = '[^']*';", "const BUILD = '$stamp';")
-Set-Content index.html -Value $html -Encoding utf8 -NoNewline
+[System.IO.File]::WriteAllText("$dir\index.html", $html, $utf8NoBom)
 
 # the file the running page polls
-Set-Content version.json -Value "{`"build`":`"$stamp`"}" -Encoding utf8 -NoNewline
+[System.IO.File]::WriteAllText("$dir\version.json", "{`"build`":`"$stamp`"}", $utf8NoBom)
 
 git add -A
 git -c user.name="Mason" -c user.email="lilcamjam567@gmail.com" commit -m "deploy $stamp" | Out-Null
