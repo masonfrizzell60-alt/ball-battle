@@ -708,9 +708,24 @@ const sfx = {
     Snd.noise(700, { dur:.30, gain:.07, q:2.2, sweep:2.6 });   // soft upward swell
     Snd.thump(300, { dur:.20, gain:.10, drop:1.7 });
   },
-  full(){
-    Snd.noise(500, { dur:.5, gain:.10, q:2.4, sweep:3.4 });
-    Snd.thump(220, { dur:.42, gain:.14, drop:2.1 });
+  /* long rising howl while the ball winds itself up to explode */
+  spinUp(){
+    Snd.noise(240, { dur:1.55, gain:.17, q:3.2, sweep:11.0 });
+    Snd.thump(55,  { dur:1.55, gain:.20, drop:4.0 });
+    Snd.noise(900, { dur:1.55, gain:.09, q:5.0, sweep:6.0 });
+  },
+  /* the +1 WIN detonation — the loudest thing in the game */
+  winBoom(){
+    Snd.noise(9500, { dur:.09, gain:.34, q:.3, sweep:.04, kind:'highpass' });
+    Snd.thump(38,  { dur:1.7, gain:.46, drop:.30 });
+    Snd.noise(320, { dur:1.1, gain:.21, q:.8, sweep:4.5 });
+    Snd.metal(700,  { dur:.95, gain:.16, delay:.04 });
+    Snd.metal(1150, { dur:.75, gain:.12, delay:.19 });
+    for(let i = 0; i < 9; i++){
+      Snd.noise(4000 + Math.random() * 3600,
+        { dur:.05, gain:.16, q:.5, sweep:.15, kind:'highpass', delay:.12 + i * .075 });
+    }
+    Snd.thump(85, { dur:1.0, gain:.24, drop:.4, delay:.5 });
   },
   /* mechanical ratchet — three ascending clicks and a thud */
   up(){
@@ -795,7 +810,7 @@ const ACTIONS = [
   { id:'bolt',  cap:'LIGHTNING',     dsc:'Strike the enemy for 50',           bKey:'3', rKey:'8',
     bImg:'gifts/paper-crane.png',  bAlt:'Paper Crane gift',
     rImg:'gifts/hat-mustache.png', rAlt:'Hat and Mustache gift' },
-  { id:'full',  cap:'FULL HEAL',     dsc:'Restore to full HP',                bKey:'4', rKey:'9',
+  { id:'win',   cap:'+1 WIN',        dsc:'Instant win — restarts the match',  bKey:'4', rKey:'9',
     bImg:'gifts/jellyfish.png',       bAlt:'Glowing Jellyfish gift',
     rImg:'gifts/watermelon-love.png', rAlt:'Watermelon Love gift' },
 ];
@@ -848,14 +863,15 @@ let over = false, paused = false, winner = null;
    arrive mid-scene chain into repeat bursts before the return.
    --------------------------------------------------------- */
 let cutQueue = [];        // FIFO of {kind:'up'|'bolt', team} — team is the GIFTER
-const cut = { on:false, kind:null, team:null, phase:'', t:0, sx:0, sy:0, svx:0, svy:0, hits:0 };
+const cut = { on:false, kind:null, team:null, phase:'', t:0, sx:0, sy:0, svx:0, svy:0, hits:0, spin:0 };
 const CUT = { gather:.50, charge:.45, burst:.55, back:.45,
               bCharge:.55, bStrike:.60, bBack:.40,
-              hCharge:.55, hBurst:.75, hBack:.35 };
+              wGather:.55, wSpin:1.60, wBoom:1.90 };
 
 function enqueueCut(kind, team){
   cutQueue.push({ kind, team });
-  if(!cut.on && !over) startNextCut();
+  // 'win' is allowed to fire from the victory screen — it restarts the match
+  if(!cut.on && (!over || kind === 'win')) startNextCut();
 }
 function startNextCut(){
   const n = cutQueue.shift();
@@ -868,11 +884,14 @@ function startNextCut(){
     cut.sx = b.x; cut.sy = b.y; cut.svx = b.vx; cut.svy = b.vy;
     cam.tx = W/2; cam.ty = H/2; cam.tz = 1.28;
 
-  } else if(n.kind === 'full'){             // heal: push in tight on the patient
+  } else if(n.kind === 'win'){              // instant win: centre stage, spin up, detonate
     const b = ballOf(n.team);
-    cut.phase = 'hcharge';
+    cut.phase = 'wgather';
     cut.sx = b.x; cut.sy = b.y; cut.svx = b.vx; cut.svy = b.vy;
-    cam.tx = b.x; cam.ty = b.y; cam.tz = 1.9;
+    cut.spin = 0;
+    cam.tx = W/2; cam.ty = H/2; cam.tz = 1.7;
+    // if the victory screen was up, this gift takes over from it
+    document.getElementById('victory').classList.remove('on');
 
   } else {                                  // lightning: hold on the victim
     const t = enemyOf(n.team);
@@ -926,30 +945,31 @@ function applyOneStrike(target){
   callout('LIGHTNING', '-' + CFG.lightningDmg + ' ' + target.name, '#C4B5FD', cut.team);
 }
 
-function applyOneFullHeal(b){
-  const gained = b.maxHp - b.hp;
-  b.hp = b.maxHp; b.flash = .8;
+/* The ball tears itself apart and the win is banked. */
+function detonateWin(b){
+  wins[b.team]++;
   cut.hits++;
 
-  // green detonation
-  shock(b.x, b.y, '#4ADE80', b.r * .5, b.r * 7.5, 24);
-  shock(b.x, b.y, '#BBF7D0', b.r * .4, b.r * 5.2, 15);
-  shock(b.x, b.y, '#FFFFFF', b.r * .3, b.r * 3.2, 9);
-  burst(b.x, b.y, '#4ADE80', 80);
-  burst(b.x, b.y, '#BBF7D0', 40);
-  burst(b.x, b.y, '#FFFFFF', 20);
-  // rising motes, like the ball is venting energy
-  for(let i = 0; i < 46; i++){
-    const a = Math.random() * 6.284, d = b.r * (.4 + Math.random() * 1.5);
-    particles.push({ x:b.x + Math.cos(a)*d, y:b.y + Math.sin(a)*d,
-      vx:(Math.random()-.5)*140, vy:-180 - Math.random()*280,
-      life:.9 + Math.random()*.7, max:1.6,
-      size:2.5 + Math.random()*4.5, color: i % 3 ? '#4ADE80' : '#FFFFFF' });
+  // triple shockwave, biggest in the game
+  shock(W/2, H/2, b.light,   b.r * .4, b.r * 11, 30);
+  shock(W/2, H/2, '#FFFFFF', b.r * .3, b.r * 8,  20);
+  shock(W/2, H/2, b.color,   b.r * .6, b.r * 5,  14);
+  burst(W/2, H/2, b.light,   130);
+  burst(W/2, H/2, '#FFFFFF',  60);
+  burst(W/2, H/2, b.color,    60);
+
+  // shrapnel flung out hard and wide
+  for(let i = 0; i < 90; i++){
+    const a = Math.random() * 6.284, s = 380 + Math.random() * 900;
+    particles.push({ x:W/2, y:H/2, vx:Math.cos(a)*s, vy:Math.sin(a)*s,
+      life:.7 + Math.random()*.9, max:1.6,
+      size:2.5 + Math.random()*6, color: i % 3 ? b.light : '#FFFFFF' });
   }
-  popup(b.x, b.y - b.r - 16, '+' + gained, '#4ADE80');
-  callout('FULL HEAL', '+' + gained + ' HP', '#4ADE80', b.team);
-  flashScreen = .42; shake = Math.max(shake, 22);
-  sfx.full();
+  spawnConfetti([b.color, b.light, '#FFFFFF', '#F5D98F', '#FFD166']);
+
+  callout(b.name + ' +1 WIN', 'MATCH RESTARTING', b.light, b.team);
+  flashScreen = .95; shake = Math.max(shake, 40);
+  sfx.winBoom();
   syncHud();
 }
 
@@ -997,32 +1017,57 @@ function stepCut(dt){
     return;
   }
 
-  /* ---------- FULL HEAL ---------- */
-  if(cut.kind === 'full'){
+  /* ---------- +1 WIN ---------- */
+  if(cut.kind === 'win'){
     const b = ballOf(cut.team);
-    b.x = cut.sx; b.y = cut.sy; b.vx = b.vy = 0;
-    b.rot += CFG.spinRate * b.spinDir * dt;
+    const foe = enemyOf(cut.team);
 
-    if(cut.phase === 'hcharge'){
-      // green motes drawn inward as it winds up
-      if(Math.random() < .7){
-        const a = Math.random() * 6.284, d = b.r * (3.0 + Math.random() * 2.6);
-        particles.push({ x:b.x + Math.cos(a)*d, y:b.y + Math.sin(a)*d,
-          vx:-Math.cos(a)*d*2.4, vy:-Math.sin(a)*d*2.4,
-          life:.4, max:.4, size:2 + Math.random()*4, color:'#4ADE80' });
+    if(cut.phase === 'wgather'){
+      // winner takes centre stage, loser is pushed off screen
+      const e = ease(Math.min(1, cut.t / CUT.wGather));
+      b.x = cut.sx + (W/2 - cut.sx) * e;
+      b.y = cut.sy + (H/2 - cut.sy) * e;
+      b.vx = b.vy = 0;
+      foe.vx = foe.vy = 0;
+      foe.x += (foe.x - W/2) * 2.6 * dt;
+      foe.y += (foe.y - H/2) * 2.6 * dt;
+      b.rot += CFG.spinRate * b.spinDir * dt * 2;
+      if(cut.t >= CUT.wGather){ cut.phase = 'wspin'; cut.t = 0; sfx.spinUp(); }
+
+    } else if(cut.phase === 'wspin'){
+      b.x = W/2; b.y = H/2; b.vx = b.vy = 0;
+      const k = Math.min(1, cut.t / CUT.wSpin);
+      // spin rate ramps from normal to blistering
+      cut.spin = 2 + Math.pow(k, 2.2) * 90;
+      b.rot += cut.spin * b.spinDir * dt;
+      // camera creeps in, screen rattles harder and harder
+      cam.tz = 1.7 + k * .85;
+      shake = Math.max(shake, k * 26);
+      // energy sucked in from all sides
+      if(Math.random() < .35 + k * .6){
+        const a = Math.random() * 6.284, d = b.r * (3.5 + Math.random() * 4.0);
+        particles.push({ x:W/2 + Math.cos(a)*d, y:H/2 + Math.sin(a)*d,
+          vx:-Math.cos(a)*d*(2.5 + k*4), vy:-Math.sin(a)*d*(2.5 + k*4),
+          life:.35, max:.35, size:2 + Math.random()*5,
+          color: Math.random() < .5 ? b.light : '#FFFFFF' });
       }
-      if(cut.t >= CUT.hCharge){ applyOneFullHeal(b); cut.phase = 'hburst'; cut.t = 0; }
+      // rings pulsing outward as it winds up
+      if(Math.random() < k * .35) shock(W/2, H/2, b.light, b.r * 1.1, b.r * 3.4, 7);
+      if(k >= 1){ detonateWin(b); cut.phase = 'wboom'; cut.t = 0; cam.tz = 1.15; }
 
-    } else if(cut.phase === 'hburst'){
-      if(cut.t >= CUT.hBurst){
-        if(chainSameKind()){ applyOneFullHeal(b); cut.t = 0; }
-        else { cut.phase = 'hback'; cut.t = 0; cam.tz = 1; cam.tx = W/2; cam.ty = H/2; }
-      }
-
-    } else if(cut.phase === 'hback'){
-      if(cut.t >= CUT.hBack){
-        b.vx = cut.svx; b.vy = cut.svy;
-        endCut();
+    } else if(cut.phase === 'wboom'){
+      // the ball is gone — hide it off screen while the banner plays
+      b.x = -9999; b.y = -9999;
+      foe.x = -9999; foe.y = -9999;
+      if(cut.t >= CUT.wBoom){
+        // a fresh match, but keep the falling confetti and anything else
+        // chat sent while the explosion was playing
+        const saved = cutQueue.slice();
+        const drifting = confetti.slice();
+        resetRound();
+        confetti = drifting;
+        cutQueue = saved;
+        startNextCut();
       }
     }
     return;
@@ -1119,21 +1164,26 @@ const enemyOf = t => t === 'blue' ? red : blue;
 
 function doAction(team, id){
   Snd.init(); Snd.resume();
-  if(over) return;
-  const me = ballOf(team), foe = enemyOf(team);
+  // a +1 WIN restarts the match, so it's the one gift that still counts
+  // once the victory screen is up — never silently swallow a paid gift
+  if(over && id !== 'win') return;
+  const me = ballOf(team);
 
   switch(id){
-    case 'heal':
+    case 'heal': {
+      // team-coloured so it's obvious at a glance WHO healed
+      const c = me.light;
       me.hp = Math.min(me.maxHp, me.hp + CFG.healSmall);
-      popup(me.x, me.y - me.r - 16, '+' + CFG.healSmall, '#6EE7A8');
-      callout('+' + CFG.healSmall + ' HP', me.name + ' HEALED', '#6EE7A8', team);
-      shock(me.x, me.y, '#6EE7A8', me.r * .8, me.r * 3.2, 12);
-      burst(me.x, me.y, '#6EE7A8', 26);
+      popup(me.x, me.y - me.r - 16, '+' + CFG.healSmall, c);
+      callout('+' + CFG.healSmall + ' HP', me.name + ' HEALED', c, team);
+      shock(me.x, me.y, c, me.r * .8, me.r * 3.2, 12);
+      burst(me.x, me.y, c, 26);
       me.flash = .35; shake = Math.max(shake, 6);
       sfx.heal();
       break;
+    }
 
-    case 'full':
+    case 'win':
     case 'up':
     case 'bolt':
       enqueueCut(id, team);        // all three are full cutscenes
@@ -2167,7 +2217,7 @@ function save(){
    reports a newer build we reload through a unique ?v= URL, which the cache
    cannot have seen. Auto-reloads only between rounds so a live game is safe.
    ========================================================= */
-const BUILD = '20260722-004519';
+const BUILD = '20260723-162655';
 let newBuild = null;
 const badgeEl = document.getElementById('updateBadge');
 
